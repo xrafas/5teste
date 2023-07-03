@@ -75,8 +75,8 @@ if ($idClienteParam !== null) {
                         <input type="number" id="codigo" name="codigo" placeholder="Digite o código" style="width: 50px; padding: 5px;" value="<?php echo isset($_GET['codigo']) ? $_GET['codigo'] : ''; ?>">
                     </div>
                     <div style="margin-right: 10px;">
-                        <label for="setor" style="display: block; font-weight: bold; margin-bottom: 5px;">Setor:</label>
-                        <select id="setor" name="setor" style="min-width: 50px; padding: 5px;">
+                        <label for="filtroSetor" style="display: block; font-weight: bold; margin-bottom: 5px;">Setor:</label>
+                        <select id="filtroSetor" name="filtroSetor" style="min-width: 50px; padding: 5px;">
                             <option value=""></option>
                             <?php
                             $query = "SELECT DISTINCT setor FROM clientes_iscas_mov WHERE Id_cliente = ?";
@@ -94,6 +94,9 @@ if ($idClienteParam !== null) {
                     </div>
                     <div>
                         <input type="button" id="b_ir" name="b_ir" value="IR" onclick="javascript:filtrar();" style="padding: 10px 20px; background-color: #007bff; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
+
+                        <!--<button onclick="filtrar()">Aplicar Filtro</button>-->
+
                     </div>
                 </div>
             </div>
@@ -140,8 +143,8 @@ if ($idClienteParam !== null) {
                                 <input type="hidden" id="id" name="id">
 
                                 <div>
-                                    <label for="setor">Setor:</label>
-                                    <select id="setor" name="setor">
+                                    <label for="modalSetor">Setor:</label>
+                                    <select id="modalSetor" name="modalSetor">
                                         <!-- As opções serão preenchidas via AJAX -->
                                     </select>
                                 </div>
@@ -182,7 +185,7 @@ if ($idClienteParam !== null) {
         var idClienteParam = new URLSearchParams(window.location.search).get('id_cliente');
         var idOsParam = new URLSearchParams(window.location.search).get('id_os');
         var codigo = document.getElementById("codigo").value;
-        var setor = document.getElementById("setor").value;
+        var setor = document.getElementById("filtroSetor").value;
 
         // Função para carregar a tabela
         function loadTable(idCliente, codigo, setor) {
@@ -215,24 +218,30 @@ if ($idClienteParam !== null) {
 
 
         // Função para carregar a Setores
-        function loadSetores(id) {
-            $.ajax({
-                url: 'fab_porta_isca_ajax.php',
-                type: 'GET',
-                data: {
-                    action: 'get_setores',
-                    id: id // Aqui estamos passando o id para a requisição
-                },
-                success: function(response) {
-                    $('#setor').html(response);
-                }
-            });
+        function loadSetores(id, idCliente) {
+    $.ajax({
+        url: 'fab_porta_isca_ajax.php',
+        type: 'GET',
+        data: {
+            action: 'get_setores',
+            id: id, // id para a requisição
+            id_cliente: idCliente // Passando o id_cliente como um parâmetro adicional
+        },
+        success: function(response) {
+            console.log(response);
+            $('#modalSetor').html(response);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log('Erro na requisição AJAX: ', textStatus, ', ', errorThrown);
         }
+    });
+}
+
 
         // Botão Adicionar Porta Isca
         $('#add-porta-isca').on('click', function() {
             $(this).prop('disabled', true).text('Carregando...'); // Desabilitar o botão e alterar texto para Carregando
-            loadSetores(null);
+            loadSetores(null, idClienteParam);
             $('#porta-iscas-modal-label').text('Adicionar Porta Isca');
             $('#porta-iscas-form')[0].reset();
             $('#id').val(''); // Certificando de limpar o campo id.
@@ -289,7 +298,7 @@ if ($idClienteParam !== null) {
                 success: function(response) {
                     var data = JSON.parse(response);
                     //console.log(data); //  para depurar
-                    loadSetores(id); // Passa o setor para a função loadSetores            
+                    //loadSetores(id, idClienteParam); // Passa o setor para a função loadSetores            
                     $('#id').val(data.Id);
                     $('#id_cliente').val(idClienteParam); //  idClienteParam 
                     $('#descricao').val(data.Descricao);
@@ -300,6 +309,9 @@ if ($idClienteParam !== null) {
                     $('#porta-iscas-modal-label').text('Editar Porta Isca');
 
                     $('#porta-iscas-modal').css('display', 'block');
+
+                    loadSetores(data.Id, idClienteParam); // Chamar loadSetores após abrir o modal
+
 
                 },
                 complete: function() {
@@ -334,7 +346,9 @@ if ($idClienteParam !== null) {
 
 
 
-    });
+     
+
+    });// fim da ready function
 
     window.onclick = function(event) {
         var modal = document.getElementById('porta-iscas-modal');
@@ -348,9 +362,23 @@ if ($idClienteParam !== null) {
         document.getElementById('porta-iscas-modal').style.display = 'none';
     }
 
+    /*
+    function filtrar() {
+    var codigo = document.getElementById("codigo").value;
+    var setor = document.getElementById("filtroSetor").value;
+    var idClienteParam = new URLSearchParams(window.location.search).get('id_cliente');
+    var idOsParam = new URLSearchParams(window.location.search).get('id_os');
+
+    // Carregar a tabela com os parâmetros de filtro
+    loadTable(idClienteParam, codigo, setor);
+}
+*/
+
+
+  
     function filtrar() {
         var codigo = document.getElementById("codigo").value;
-        var setor = document.getElementById("setor").value;
+        var setor = document.getElementById("filtroSetor").value;
         var idClienteParam = new URLSearchParams(window.location.search).get('id_cliente');
         var idOsParam = new URLSearchParams(window.location.search).get('id_os');
         var url = 'fab_porta_isca.php?id_cliente=' + idClienteParam + '&id_os=' + idOsParam;
@@ -363,4 +391,5 @@ if ($idClienteParam !== null) {
         }
         location.href = url;
     }
+ 
 </script>
