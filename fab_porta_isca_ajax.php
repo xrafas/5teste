@@ -60,21 +60,23 @@ switch ($action) {
         $stmt = $conn_ext->prepare($sql);
 
         $bind_params = [];
+
         if ($id_cliente !== null) {
             $bind_params[] = $id_cliente;
         }
-
-        if ($codigo  !== null) {
-            $bind_params[] = $codigo;
-        }
-
+        
         if ($setor !== null) {
             $bind_params[] = $setor;
         }
-
+        
+        if ($codigo  !== null) {
+            $bind_params[] = $codigo;
+        }
+        
         if (!empty($bind_params)) {
             $stmt->bind_param(str_repeat("s", count($bind_params)), ...$bind_params);
         }
+        
 
         $stmt->execute();
 
@@ -155,7 +157,7 @@ switch ($action) {
         $id = $_POST['id'];
         $descricao = $_POST['descricao'];
         $id_cliente = $_POST['id_cliente'];
-        $setor = $_POST['setor'];
+        $setor = $_POST['modalSetor'];
         $tipo = $_POST['tipo'];
 
         // Verifica se o ID é nulo (novo registro) ou não (atualização)
@@ -210,31 +212,36 @@ switch ($action) {
         echo "Porta iscas deletado com sucesso!";
         break;
 
-    case 'get_setores':
-        $id = isset($_GET['id']) ? $_GET['id'] : null;
-        $selectedSetor = null;
-
-        // Obtendo o setor selecionado de clientes_iscas_mov
-        if ($id !== null) {
-            $stmt = $conn_ext->prepare("SELECT setor FROM clientes_iscas_mov WHERE Id = ?");
-            $stmt->bind_param("i", $id);
+        case 'get_setores':
+            $id = isset($_GET['id']) ? $_GET['id'] : null;
+            $id_cliente = isset($_GET['id_cliente']) ? $_GET['id_cliente'] : null;
+            $selectedSetor = null;
+        
+            // Obtendo o setor selecionado de clientes_iscas_mov
+            if ($id !== null) {
+                $stmt = $conn_ext->prepare("SELECT setor FROM clientes_iscas_mov WHERE Id = ?");
+                $stmt->bind_param("i", $id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                if ($result->num_rows > 0) {
+                    $selectedSetor = $result->fetch_assoc()['setor'];
+                }
+            }
+        
+            // Obtendo os setores da tabela clientes_iscas
+            $sql = "SELECT DISTINCT Descricao FROM clientes_iscas WHERE Id_cliente = ? AND Status = 'ATIVO' ORDER BY Descricao";
+            $stmt = $conn_ext->prepare($sql);
+            $stmt->bind_param("s", $id_cliente);
             $stmt->execute();
             $result = $stmt->get_result();
-            if ($result->num_rows > 0) {
-                $selectedSetor = $result->fetch_assoc()['setor'];
+        
+            while ($row = $result->fetch_assoc()) {
+                // Marcar a opção como selecionada se for o valor salvo
+                $selected = ($row['Descricao'] == $selectedSetor) ? 'selected' : '';
+                echo '<option value="' . $row['Descricao'] . '" ' . $selected . '>' . $row['Descricao'] . '</option>';
             }
-        }
-
-        // Obtendo os setores da tabela clientes_iscas
-        $sql = "SELECT DISTINCT Descricao FROM clientes_iscas ORDER BY Descricao";
-        $result = $conn_ext->query($sql);
-
-        while ($row = $result->fetch_assoc()) {
-            // Marcar a opção como selecionada se for o valor salvo
-            $selected = ($row['Descricao'] == $selectedSetor) ? 'selected' : '';
-            echo '<option value="' . $row['Descricao'] . '" ' . $selected . '>' . $row['Descricao'] . '</option>';
-        }
-        break;
+            break;
+        
 
 
 
