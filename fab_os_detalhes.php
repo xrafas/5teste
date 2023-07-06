@@ -265,10 +265,12 @@ while ($row = $result2->fetch_assoc()) {
 
 
 
-            foreach ($servicos as $servicoId => $servico) {
-                if (empty($servico['tipo_servico'])) {
-                    continue;
-                }
+if (empty($servicos)) {
+    echo 'Nenhum serviço encontrado.';
+} else {
+    // Se houver serviços, continue com o loop e exiba os detalhes
+    foreach ($servicos as $servicoId => $servico) {
+        if (count($servico['produtos']) > 0) {
                 echo '<div class="servico-container" data-servico-id="' . $servicoId . '" data-id-os="' . $servico['idOs'] . '" data-id-srv="' . $servico['idSrv'] . '">';
 
                 echo '<b>Tipo de Serviço:</b> ' . $servico['tipo_servico'] . '<br>'; // Modificado para exibir o tipo de serviço
@@ -294,6 +296,8 @@ while ($row = $result2->fetch_assoc()) {
                 echo '</tbody>';
                 echo '</table>';
 
+            }
+
                 //Modal para pesquisa de produtos
                 echo '<div id="modal-produtos" data-servico-id="" style="display: none;">
                 <input type="text" id="pesquisa-produto-' . $servicoId . '" class="pesquisa-produto" placeholder="Digite para pesquisar..." data-servico-id="' . $servicoId . '">
@@ -302,6 +306,7 @@ while ($row = $result2->fetch_assoc()) {
             </div>
             <div id="modal-background" class="modal-background"></div>
             ';
+            if (count($servico['produtos']) > 0) {
 
                 // Botões de adicionar e atualizar
                 echo '<button type="button" class="adicionar-produto" data-servico-id="' . $servicoId . '">Adicionar Produto</button>';
@@ -310,6 +315,8 @@ while ($row = $result2->fetch_assoc()) {
 
                 echo '</div><hr>';
             }
+            }
+        }
 
 
             //esta parte após o loop foreach dos serviços
@@ -448,6 +455,25 @@ while ($row = $result2->fetch_assoc()) {
         $(document).on('click', '.adicionar-produto', function() {
             // Obtém o ID do serviço do atributo data-servico-id do botão
             var servicoId = $(this).data('servico-id');
+            
+            console.log("Botão Adicionar Produto clicado para o serviço ID: ", servicoId);
+
+            // Armazena o ID do serviço no modal
+            $('#modal-produtos').data('servico-id', servicoId);
+
+            // Exibe o modal de pesquisa de produtos
+            $('#modal-background').show();
+            $('#modal-produtos').show();
+
+            // Define o foco no campo de pesquisa de produtos
+            $('.pesquisa-produto').focus();
+        });
+
+        $(document).on('click', '.adicionar-produto2', function() {
+            // Obtém o ID do serviço do atributo data-servico-id do botão
+            var servicoId = $(this).data('servico-id');
+            
+            console.log("Botão Adicionar Produto clicado para o serviço ID: ", servicoId);
 
             // Armazena o ID do serviço no modal
             $('#modal-produtos').data('servico-id', servicoId);
@@ -614,7 +640,7 @@ while ($row = $result2->fetch_assoc()) {
                                 novoServicoHtml += '</tbody>';
                                 novoServicoHtml += '</table>';
 
-                                novoServicoHtml += '<button type="button" class="adicionar-produto" data-servico-id="' + response.servico.id +
+                                novoServicoHtml += '<button type="button" class="adicionar-produto2" data-servico-id="' + response.servico.id +
                                     '">Adicionar Produto</button>';
 
                                 novoServicoHtml += '<button type="button" class="atualizar-servico" data-servico-id="' + response.servico.id +
