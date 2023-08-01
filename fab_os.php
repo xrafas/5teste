@@ -1,244 +1,364 @@
-<!doctype html>
-<html>
+<?php include("topo.php");
 
-<head>
-    <meta charset="utf-8">
-
-    <title>Ambienthal</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
-
-</head>
+require_once("../db_functions_ext.php");
 
 
-<style type="text/css">
-    body {
-        background-color: #CCFBD5;
-    }
+//if ($_SESSION['p1'] == '1') {
+?>
+
+<script type="text/javascript" src="ajax.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+
+<div class="content well pull-left span12">
+
+	<div class="row">
+
+		<div class="span12">
+
+			<div class="box-adress">
+				<ul>
+					<li>
+						<i class="fas fa-search"></i> <strong>Pesquisar OS</strong>
+						<form name="frm_pesquisa" method="post" action="">
+
+
+							Data
+							<input type="date" id="data_calendario" name="data_calendario" value="<?php echo $_GET['data_calendario']; ?>">
+
+
+
+							<?php
+							$query_clientes = "SELECT Id, Nome FROM clientes GROUP BY Nome ORDER BY Nome ASC ";
+
+							$result_clientes = $conn_ext->query($query_clientes);
+							if (!$result_clientes) {
+								die("Erro na consulta result_clientes: " . mysqli_error($conn_ext));
+							}
+
+							// Armazene os valores selecionados
+							$selected_cliente = isset($_GET['cliente_filtro']) ? $_GET['cliente_filtro'] : "";
+							$selected_tipo = isset($_GET['tipo_filtro']) ? $_GET['tipo_filtro'] : "";
+							$selected_status = isset($_GET['status_filtro']) ? $_GET['status_filtro'] : "";
+
+							// Obtenha o nome do cliente selecionado
+							$selected_cliente_name = "";
+							if ($selected_cliente != "") {
+								foreach ($result_clientes as $cliente) {
+									if ($cliente['Id'] == $selected_cliente) {
+										$selected_cliente_name = $cliente['Nome'];
+										break;
+									}
+								}
+							}
+							?>
+							&nbsp;&nbsp;Clientes
+							<select name="cliente_filtro" id="cliente_filtro" placeholder="cliente_filtro">
+								<option value="<?= $selected_cliente ?>"><?= $selected_cliente_name ?></option>
+								<?php foreach ($result_clientes as $cliente) : ?>
+									<?php if ($cliente['Id'] != $selected_cliente) : ?>
+										<option value="<?= $cliente['Id'] ?>"><?= $cliente['Nome'] ?></option>
+									<?php endif; ?>
+								<?php endforeach; ?>
+							</select>
+
+							&nbsp;&nbsp;Tipo
+							<select name="tipo_filtro" id="tipo_filtro" placeholder="Tipo de visita">
+								<?php if ($selected_tipo != "") : ?>
+									<option value="<?= $selected_tipo ?>"><?= $selected_tipo ?></option>
+								<?php endif; ?>
+
+								<option value="CONTRATO" <?= $selected_tipo == "CONTRATO" ? "hidden" : "" ?>>CONTRATO</option>
+								<option value="AVULSO" <?= $selected_tipo == "AVULSO" ? "hidden" : "" ?>>AVULSO</option>
+							</select>
+
+							&nbsp;&nbsp;Status
+							<select name="status_filtro" id="status_filtro" placeholder="status">
+								<?php if ($selected_status != "") : ?>
+									<option value="<?= $selected_status ?>"><?= $selected_status ?></option>
+								<?php endif; ?>
+
+								<option value="ABERTO" <?= $selected_status == "ABERTO" ? "hidden" : "" ?>>ABERTO</option>
+								<option value="EXECUTANDO" <?= $selected_status == "EXECUTANDO" ? "hidden" : "" ?>>EXECUTANDO</option>
+								<option value="PAUSADO" <?= $selected_status == "PAUSADO" ? "hidden" : "" ?>>PAUSADO</option>
+								<option value="FINALIZADO" <?= $selected_status == "FINALIZADO" ? "hidden" : "" ?>>FINALIZADO</option>
+								<option value="CANCELADO" <?= $selected_status == "CANCELADO" ? "hidden" : "" ?>>CANCELADO</option>
+							</select>
+
+
+
+
+							<input type="button" id="b_ir" name="b_ir" value="IR" onclick="javascript:pesquisa_ir();">
+							<br><br>
+
+							<!--						
+
+							<a class="btn btn-primary" href="fab_os_nova.php" role="button" style="display:block; width: 100px;"><span>Incluir</span></a>
+
+							<a class="btn btn-primary" href="fab_os_nova.php" role="button" style="font-size: 18px; padding: 10px 20px;"><span>Incluir</span></a>
+
+							<a class="btn btn-primary" href="fab_os_nova.php" role="button" style="min-width: 100px; min-height: 40px;"><span>Incluir</span></a>
+								-->
+
+							<!--<a class="btn btn-primary" target="_blank" href="visita_relatorio_impressao.php?data_calendario=<? //echo $_GET['data_calendario']; 
+																																?>&medico_filtro=<? //echo $_GET['medico_filtro']; 
+																																					?>&vendedor_filtro=<? //echo $_GET['vendedor_filtro']; 
+																																										?>&tipo_filtro=<? //echo $_GET['tipo_filtro']; 
+																																														?>" role=" button"><span>Incluir</span></a>
+							-->
+						</form>
+						<!-- Adicionar div para envolver o botão Incluir -->
+						<div style="position: relative; z-index: 100;">
+							<a class="btn btn-primary" href="fab_os_nova.php" role="button" ><span>Incluir</span></a>
+						</div>
+					</li>
+
+				</ul>
+
+			</div>
+
+
+			<hr>
+
+
+
+
+
+			</ul>
+		</div>
+
+		<div class="box-form-container">
+
+			<form action="" id="frm_pesquisa">
+
+			</form>
+			<!--Form-->
+
+		</div>
+		<!--BoxFormContainer-->
+
+		<hr>
+
+
+		<div class="box-table">
+
+			<div id="Resultado">
+
+				<?php
+
+				// Verifica as permissões do usuário
+				$isPrivilegedUser = ($_SESSION['p1'] == '1'); // Verifica se o usuário tem privilégios
+
+				$exp = "";
+				$limitFilter = " LIMIT 20";
+				$lastEntries = true;
+
+				if (!$isPrivilegedUser) {
+					// Se não for um usuário privilegiado, ajusta as restrições para mostrar apenas as OS relacionadas e do dia atual
+					$todayDate = date('Y-m-d');
+					$limitFilter = "";
+					$exp .= " AND scos.Data = '{$todayDate}' AND scosc.Id_Vendedor = " . intval($_SESSION['id_vendedor']);
+				}
+
+				// Se filtros foram aplicados
+				if ((isset($_GET['data_calendario'])) || (isset($_GET['status_filtro'])) || (isset($_GET['cliente_filtro'])) || (isset($_GET['tipo_filtro']))) {
+					$lastEntries = false;
+					$limitFilter = "";
+
+					if (!empty($_GET['data_calendario'])) {
+						$exp .= " AND scos.Data = '" . $_GET['data_calendario'] . "' ";
+					}
+
+					if (!empty($_GET['status_filtro'])) {
+						$exp .= " AND scos.Situacao = '" . $_GET['status_filtro'] . "' ";
+					}
+
+					if (!empty($_GET['cliente_filtro'])) {
+						$exp .= " AND sc.Id_cliente = '" . $_GET['cliente_filtro'] . "' ";
+					}
+
+					if (!empty($_GET['tipo_filtro'])) {
+						$exp .= " AND sc.Tipo = '" . $_GET['tipo_filtro'] . "' ";
+					}
+				}
+
+				// Ajuste na consulta SQL para incluir a tabela 'srv_cont_os_servico_colaborador' com alias 'scosc'
+				$query_count = "SELECT COUNT(*) AS Total FROM srv_cont_os scos LEFT JOIN srv_cont sc ON scos.id_SRV = sc.Id LEFT JOIN srv_cont_os_servico_colaborador scosc ON scos.Id = scosc.Id_OS WHERE 1=1 " . $exp;
+				$result_count = $conn_ext->query($query_count);
+
+				if (!$result_count) {
+					die("Erro na consulta query_count: " . mysqli_error($conn_ext));
+				}
+
+
+
+
+				$Total = $result_count->fetch_assoc();
+
+				?>
+				<div class="up-box-form-container">
+					<ul>
+						<label><b>
+								<?php
+								if ($Total['Total'] > 0) {
+									if ($isPrivilegedUser) {
+										if ($lastEntries) {
+											echo "Últimas 20 OS:";
+										} else {
+											echo "Quantidade de OS: " . $Total['Total'];
+										}
+									} else {
+										echo "OS agendas para hoje:";
+									}
+								}
+								?>
+							</b></label>
+
+					</ul>
+
+					<?php
+					//$sql = "SELECT scos.*, sc.Id AS IdContrato, sc.Tipo AS TipoOs, c.Nome AS NomeCliente FROM srv_cont_os scos LEFT JOIN srv_cont sc ON scos.id_SRV = sc.Id LEFT JOIN clientes c ON sc.Id_cliente = c.Id WHERE 1=1 " . $exp . " ORDER BY scos.Id DESC" . $limitFilter;
+					//$sql = "SELECT scos.*, sc.Id AS IdContrato, sc.Tipo AS TipoOs, c.Nome AS NomeCliente FROM srv_cont_os scos LEFT JOIN srv_cont sc ON scos.id_SRV = sc.Id LEFT JOIN clientes c ON sc.Id_cliente = c.Id LEFT JOIN srv_cont_os_servico_colaborador scosc ON scos.Id = scosc.Id_OS WHERE 1=1 " . $exp . " ORDER BY scos.Id DESC" . $limitFilter;
+					$sql = "SELECT scos.*, sc.Id AS IdContrato, sc.Tipo AS TipoOs, c.Nome AS NomeCliente FROM srv_cont_os scos LEFT JOIN srv_cont sc ON scos.id_SRV = sc.Id LEFT JOIN clientes c ON sc.Id_cliente = c.Id LEFT JOIN srv_cont_os_servico_colaborador scosc ON scos.Id = scosc.Id_OS WHERE 1=1 " . $exp . " ORDER BY scos.Id DESC" . $limitFilter;
+
+					$result = $conn_ext->query($sql);
+					if (!$result) {
+						die("Erro na consulta result: " . mysqli_error($conn_ext));
+					}
+					?>
+
+					<div class="box-form-container">
+						<?php if ($Total['Total'] > 0) : ?>
+							<?php while ($dash = $result->fetch_assoc()) : ?>
+								<ul>
+									<li>
+										<label><i>Número da OS</i></label>
+										<?php echo $dash['Id']; ?>
+									</li>
+									<li>
+										<label><i>Número do Contrato</i></label>
+										<?php echo $dash['IdContrato']; ?>
+									</li>
+									<li>
+										<label><i>Nome do Cliente</i></label>
+										<?php echo $dash['NomeCliente']; ?>
+									</li>
+
+									<li>
+										<label><i>Tipo</i></label>
+										<?php echo $dash['TipoOs']; ?>
+									</li>
+									<li>
+										<label><i>Data</i></label>
+										<?php echo date("d/m/Y", strtotime($dash['Data'])); ?>
+									</li>
+									<li>
+										<label><i>Situação</i></label>
+										<?php echo $dash['Situacao']; ?>
+									</li>
+									<li>
+										<label><i>Usuário Execução</i></label>
+
+										<?php
+										$tipo = $dash['Execucao_Usuario'];
+										if (empty($tipo)) {
+											$tipo = "Não indicado";
+										}
+										echo $tipo;
+										?>
+
+									</li>
+
+									<li>
+										<a href="fab_os_detalhes.php?id_os=<?php echo $dash['Id']; ?>"><label><i>Detalhes</i></label>
+											<i class="fas fa-info-circle"></i></a>
+									</li>
+								</ul>
+								<hr>
+							<?php endwhile; ?>
+
+						<?php else : ?>
+							<div class="no-orders-message">
+								<ul>
+									<li>Não foram encontradas ordens de serviço.</li>
+								</ul>
+							</div>
+						<?php endif; ?>
+
+
+
+					</div> <!-- container -->
+
+
+				</div>
+				<!--Resultado-->
+
+			</div>
+			<!--BoxTable-->
+
+		</div>
+		<!--Span-->
+
+	</div>
+	<!--Row-->
+
+</div>
+<!--Content-->
+
+<div>
+
+
+	<div>
+
+
+
+
+		<div id="Resultado">
+
+			</hr>
+			</body>
+
+			</html>
+
+		</div>
+	</div>
+</div>
+</div>
+</div>
+
+<?php include("base.php");
+//} 
+?>
+
+
+<script>
+	function pesquisa_ir() {
+
+		var aux = '';
+
+
+		if (document.frm_pesquisa.data_calendario.value !== '') {
+			aux += 'data_calendario=' + document.frm_pesquisa.data_calendario.value + '&';
+		}
+		if (document.frm_pesquisa.cliente_filtro.value !== '') {
+			aux += 'cliente_filtro=' + document.frm_pesquisa.cliente_filtro.value + '&';
+		}
+		if (document.frm_pesquisa.tipo_filtro.value !== '') {
+			aux += 'tipo_filtro=' + document.frm_pesquisa.tipo_filtro.value + '&';
+		}
+		if (document.frm_pesquisa.status_filtro.value !== '') {
+			aux += 'status_filtro=' + document.frm_pesquisa.status_filtro.value + '&';
+		}
+
+		url = 'fab_os.php?' + aux;
+		//window.alert(url);
+		location.href = url;
+	}
+</script>
+<style>
+	.no-orders-message {
+		margin: 0;
+		padding: 0;
+		clear: both;
+		/* Isso garante que a div não vai sobrepor ou ser sobreposta por elementos flutuantes com o botão Incluir */
+	}
 </style>
-
-<body>
-    <h1><img src="http://ambienthal.mgnettecnologiaweb.com.br/Content/images/logAmbienthal.png">Ordem de Serviço</h1>
-    <hr>
-    </hr>
-    <ul>
-
-
-
-
-
-        <div>
-            <label>Cliente (Razão Social):</label>
-            <input type="text" id="cliente" name="cliente" value="">
-
-            <label>Contrato N°:</label>
-            <input type="text" id="contrato" name="contrato" value="">
-
-            <br>
-
-            <label>OS N°:</label>
-            <input type="text" id="os" name="os" value="">
-            
-            <label>Data de lançamento:</label>
-            <input type="date" id="data_lancamento" name="data_lancamento" value="">
-
-            <br>
-
-            <label>Data e Hora do Serviço:</label>
-            <input type="date" id="data_servico" name="data_servico" value="">
-            <input type="time" id="hora_servico" name="hora_servico" value="">
-
-            <label>Data Venc. Garantia:</label>
-            <input type="date" id="data_garantia" name="data_garantia" value="">
-
-            <br>
-
-            <label>Valor do Serviço:</label>
-            <input type="text" id="valor" name="valor" value="Não disponível">
-
-        </div>
-
-        <hr>
-        <div>
-
-            <label>Descrição Area Interna:</label>
-            <br>
-            <textarea rows="2" cols="30">
-												</textarea>
-
-            <br>
-            <label>Descrição Area Externa:</label>
-            <br>
-            <textarea rows="2" cols="30">
-												</textarea>
-
-            <br>
-
-            <label>Observação:</label>
-            <br>
-            <textarea rows="4" cols="80">
-												</textarea>
-
-        </div>
-        </hr>
-        <hr>
-
-        <label><b>Tipo de OS:</b></label>
-    
-
-   
-
-        <br>
-
-
-       
-            <label><b>Tipo:</b></label>
-            <select name="tipo" placeholder="tipo:">
-                <option value=""></option>
-                <option value="CONTROLE">Controle de Praga</option>
-                <option value="LIMPEZA">Limpeza de Ar Condicionado</option>
-                <option value="COLETA">Coleta de Lixo</option>
-            </select>
-
-
-
-
-
-
-        
-        <div id="result"></div>
-        </div>
-        <br>
-
-
-
-        <script>
-            $(document).ready(function() {
-                $('select[name="tipo"]').click(function() {
-                    var tipo = $(this).val();
-                    $.ajax({
-                        url: "fab_insert_1.php",
-                        method: "POST",
-                        data: {
-                            tipo: tipo
-                        },
-                        success: function(data) {
-                            $('#result').html(data);
-                        }
-                    });
-                });
-            });
-        </script>
-
-
-        </hr>
-
-
-        <hr>
-        <div>
-
-
-
-            <label><b>Materiais Utilizados:</b></label>
-            <br>
-            <label>Seleção de Material:</label>
-            <select name="materiais" placeholder="listagem">
-                <option value=""></option>
-                <option value="material1">Material de exemplo 1</option>
-                <option value="material2">Material de exemplo 2</option>
-                <option value="material3">Material de exemplo 3</option>
-                <option value="material4">Material de exemplo 4</option>
-                <option value="material5">Material de exemplo 5</option>
-                <option value="material6">Material de exemplo 6</option>
-            </select>
-            <input type="button" name="add" id="add" value='Adicionar Selecionado'>
-
-            <br>
-
-            <label>Utilizados:</label>
-            <br>
-            <label>Material:</label>
-            <input type="text" id="material" name="material" value="Material de exemplo 2">
-            <label>Qtd:</label>
-            <input type="number" id="qtd" name="qtd" value="3">
-            <br>
-            <label>Material:</label>
-            <input type="text" id="material" name="material" value="Material de exemplo 3">
-            <label>Qtd:</label>
-            <input type="number" id="qtd" name="qtd" value="1">
-            <br><label>Material:</label>
-            <input type="text" id="material" name="material" value="Material de exemplo 4">
-            <label>Qtd:</label>
-            <input type="number" id="qtd" name="qtd" value="2">
-            <br>
-
-
-            </hr>
-        </div>
-
-
-        <hr>
-        <div>
-            <label><b>Status do Serviço:</b></label>
-            <br>
-
-            <label>Situação:</label>
-            <input type="text" name="situacao" id="situacao" value='PARADA'>
-
-            <input type="button" name="iniciar" id="iniciar" value='Iniciar'>
-            <input type="button" name="finalizar" id="finalizar" value='Finalizar'>
-
-            <br>
-
-
-            <label>Data e Hora do Início da OS:</label>
-            <input type="datetime" id="data_servico" name="data_servico" value="01/01/2022 10:30">
-
-
-            <label>-</label>
-            <input type="text" name="colaborador_inicial" id="colaborador_inicial" value="João">
-
-            <br>
-
-            <label>Data e Hora do Término da OS:</label>
-            <input type="datetime" id="data_servico" name="data_servico" value="">
-
-
-            <label>-</label>
-            <input type="text" name="colaborador_final" id="colaborador_final" value=''>
-
-
-
-
-            <hr>
-        </div>
-        <div>
-            <label>Paradas da OS:</label>
-
-
-
-            <input type="button" name="parada" id="parada" value='Parara'>
-            <input type="button" name="reiniciar" id="reiniciar" value='Reiniciar'>
-            <br><br>
-            <label>Data e Hora:</label>
-            <input type="datetime" id="data_servico" name="data_servico" value="01/01/2022 15:00">
-
-            <label>-</label>
-            <input type="text" name="colaborador_parada" id="colaborador_parada" value='João'>
-
-
-            <label>Motivo:</label>
-            <input type="text" name="motivo" id="motivo" value='Teste'>
-            <br><br>
-
-
-            </hr>
-        </div>
-
-    </ul>
-</body>
-
-</html>

@@ -127,6 +127,7 @@ while ($row = $result2->fetch_assoc()) {
         $servicos[$servicoId]['produtos'][] = [
             'id' => $row['Id'],  // adicionando o ID único da entrada
             'produtoId' => $row['id_produto'],
+            'idProdutoMov' => $row['Id_produto_mov'],  // Adicionando o campo 'Id_produto_mov'
             'descricao_produto' => $row['DescricaoProduto'],
             'quantidade' => $row['QuantidadeProduto'],
             'origem' => $origem
@@ -261,62 +262,82 @@ while ($row = $result2->fetch_assoc()) {
             </div>
 
             <?php
+            if (empty($servicos)) {
+                echo 'Nenhum serviço encontrado.';
+            } else {
+                // Se houver serviços, continue com o loop e exiba os detalhes
+                foreach ($servicos as $servicoId => $servico) {
+
+                    echo '<div class="servico-container" data-servico-id="' . $servicoId . '" data-id-os="' . $servico['idOs'] . '" data-id-srv="' . $servico['idSrv'] . '">';
+
+                    echo '<b>Tipo de Serviço:</b> ' . $servico['tipo_servico'] . '<br>'; // Modificado para exibir o tipo de serviço
+                    // Exibindo o valor de Local_tratamento no loop dos serviços.
+                    echo '<b>Local de Tratamento:</b> ' . $servico['local_tratamento'] . '<br>';
+
+
+                    if (count($servico['produtos']) > 0) {
+                        echo '<table class="produtos-adicionados produtos-adicionados-' . $servicoId . '">';
+
+                        echo '<thead><tr><th>Produtos</th><th>Qnts</th><th>Origem</th><th></th></tr></thead>'; // Adicionada coluna para remoção
+                        echo '<tbody>';
 
 
 
-
-if (empty($servicos)) {
-    echo 'Nenhum serviço encontrado.';
-} else {
-    // Se houver serviços, continue com o loop e exiba os detalhes
-    foreach ($servicos as $servicoId => $servico) {
-        if (count($servico['produtos']) > 0) {
-                echo '<div class="servico-container" data-servico-id="' . $servicoId . '" data-id-os="' . $servico['idOs'] . '" data-id-srv="' . $servico['idSrv'] . '">';
-
-                echo '<b>Tipo de Serviço:</b> ' . $servico['tipo_servico'] . '<br>'; // Modificado para exibir o tipo de serviço
-                // Exibindo o valor de Local_tratamento no loop dos serviços.
-                echo '<b>Local de Tratamento:</b> ' . $servico['local_tratamento'] . '<br>';
-
-                echo '<table class="produtos-adicionados">';
-                echo '<thead><tr><th>Produtos</th><th>Qnts</th><th>Origem</th><th></th></tr></thead>'; // Adicionada coluna para remoção
-                echo '<tbody>';
+                        foreach ($servico['produtos'] as $produto) {
+                            echo '<tr data-id="' . $produto['id'] . '" data-produto-id="' . $produto['produtoId'] . '"  data-id-produto-mov="' . $produto['idProdutoMov'] . '">';
 
 
 
-                foreach ($servico['produtos'] as $produto) {
-                    echo '<tr data-id="' . $produto['id'] . '" data-produto-id="' . $produto['produtoId'] . '">';
+                            echo '<td>' . $produto['descricao_produto'] . '</td>';
+                            echo '<td class="quantidade">' . $produto['quantidade'] . '</td>';
+                            echo '<td>' . $produto['origem'] . '</td>';
+                            echo '<td><button type="button" class="remover-produto">Remover</button></td>'; // Botão de remoção
+                            echo '</tr>';
+                        }
 
-                    echo '<td>' . $produto['descricao_produto'] . '</td>';
-                    echo '<td>' . $produto['quantidade'] . '</td>';
-                    echo '<td>' . $produto['origem'] . '</td>';
-                    echo '<td><button type="button" class="remover-produto">Remover</button></td>'; // Botão de remoção
-                    echo '</tr>';
-                }
+                        echo '</tbody>';
+                        echo '</table>';
+                    } else {
+                        echo '<table class="produtos-adicionados produtos-adicionados-' . $servicoId . '" style="display: none;">';
 
-                echo '</tbody>';
-                echo '</table>';
+                        echo '<thead><tr><th>Produtos</th><th>Qnts</th><th>Origem</th><th></th></tr></thead>'; // Adicionada coluna para remoção
+                        echo '<tbody>';
 
-            }
 
-                //Modal para pesquisa de produtos
-                echo '<div id="modal-produtos" data-servico-id="" style="display: none;">
+
+                        foreach ($servico['produtos'] as $produto) {
+                            echo '<tr data-id="' . $produto['id'] . '" data-produto-id="' . $produto['produtoId'] . '"  data-id-produto-mov="' . $produto['idProdutoMov'] . '">';
+
+                            echo '<td>' . $produto['descricao_produto'] . '</td>';
+                            echo '<td class="quantidade">' . $produto['quantidade'] . '</td>';
+                            echo '<td>' . $produto['origem'] . '</td>';
+                            echo '<td><button type="button" class="remover-produto">Remover</button></td>'; // Botão de remoção
+                            echo '</tr>';
+                        }
+
+                        echo '</tbody>';
+                        echo '</table>';
+                    }
+
+                    //Modal para pesquisa de produtos
+                    echo '<div id="modal-produtos" data-servico-id="" style="display: none;">
                 <input type="text" id="pesquisa-produto-' . $servicoId . '" class="pesquisa-produto" placeholder="Digite para pesquisar..." data-servico-id="' . $servicoId . '">
 
                 <div id="resultados-produtos-' . $servicoId . '"></div>
             </div>
             <div id="modal-background" class="modal-background"></div>
             ';
-            if (count($servico['produtos']) > 0) {
+                    //if (count($servico['produtos']) > 0) {
 
-                // Botões de adicionar e atualizar
-                echo '<button type="button" class="adicionar-produto" data-servico-id="' . $servicoId . '">Adicionar Produto</button>';
+                    // Botões de adicionar e atualizar
+                    echo '<button type="button" class="adicionar-produto" data-servico-id="' . $servicoId . '">Adicionar Produto</button>';
 
-                echo '<button type="button" class="atualizar-servico" data-servico-id="' . $servicoId . '">Atualizar (sincronizar)</button>';
+                    //remover echo '<button type="button" class="atualizar-servico" data-servico-id="' . $servicoId . '">Atualizar (sincronizar)</button>';
 
-                echo '</div><hr>';
+                    echo '</div><hr>';
+                    //}
+                }
             }
-            }
-        }
 
 
             //esta parte após o loop foreach dos serviços
@@ -348,11 +369,6 @@ if (empty($servicos)) {
             echo '</div>';
 
             ?>
-
-
-
-
-
             </ul>
             </form>
 
@@ -361,7 +377,171 @@ if (empty($servicos)) {
     </div><!--Span-->
 </div><!--Row-->
 </div><!--Content-->
+<div class="loader" style="display: none;"></div>
+<div class="disable-screen"></div>
 
+<style>
+    .produtos-adicionados {
+        display: table;
+        /* Define o tipo de exibição do elemento para table */
+        border-collapse: collapse;
+        /* Remove o espaço entre as bordas das células na tabela */
+        width: 100%;
+        /* Define a largura do elemento para ocupar todo o espaço disponível */
+    }
+
+    .produtos-adicionados th,
+    .produtos-adicionados td {
+        padding: 10px;
+        /* Define o preenchimento ao redor do conteúdo das células da tabela */
+        text-align: left;
+        /* Alinha o texto à esquerda das células da tabela */
+        border: 1px solid #ddd;
+        /* Adiciona uma borda sólida de 1px de cor cinza claro ao redor das células da tabela */
+    }
+
+    .produtos-adicionados th {
+        background-color: #f2f2f2;
+        /* Define a cor de fundo das células do cabeçalho da tabela para um cinza claro */
+    }
+
+    .produtos-adicionados td {
+        min-width: 15px;
+        /* Define a largura mínima das células da tabela */
+        max-width: 150px;
+        /* Define a largura máxima das células da tabela */
+    }
+
+    .modal-background {
+        display: none;
+        /* Inicialmente, o elemento não será exibido */
+        position: fixed;
+        /* Posiciona o elemento de forma fixa na tela */
+        top: 0;
+        /* Define a posição superior do elemento para 0 */
+        left: 0;
+        /* Define a posição esquerda do elemento para 0 */
+        width: 100%;
+        /* Define a largura do elemento como 100% da largura da tela */
+        height: 100%;
+        /* Define a altura do elemento como 100% da altura da tela */
+        background-color: rgba(0, 0, 0, 0.5);
+        /* Define a cor de fundo do elemento como preto com 50% de opacidade */
+        z-index: 1000;
+        /* Define a ordem de empilhamento do elemento (ficará em cima dos elementos com z-index menor) */
+    }
+
+    #modal-produtos {
+        display: none;
+        /* Inicialmente, o elemento não será exibido */
+        position: absolute;
+        /* Posiciona o elemento de maneira absoluta em relação ao elemento pai mais próximo (ou ao próprio corpo) com posição não estática */
+        top: 50%;
+        /* Posiciona o topo do elemento no meio verticalmente */
+        left: 50%;
+        /* Posiciona o lado esquerdo do elemento no meio horizontalmente */
+        transform: translate(-50%, -50%);
+        /* Muda a posição do elemento para cima e para a esquerda em 50% da sua própria altura e largura, respectivamente, efetivamente centrando o elemento */
+        background-color: white;
+        /* Define a cor de fundo do elemento para branco */
+        padding: 20px;
+        /* Define o preenchimento ao redor do conteúdo do elemento */
+        border: 1px solid #ccc;
+        /* Adiciona uma borda sólida de 1px de cor cinza claro ao redor do elemento */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        /* Adiciona uma sombra ao redor do elemento */
+        max-width: 80%;
+        /* Define a largura máxima do elemento para 80% da largura da tela */
+        z-index: 1010;
+        /* Define a ordem de empilhamento do elemento (ficará em cima dos elementos com z-index menor, incluindo .modal-background) */
+    }
+
+    #modal-produtos .modal-content {
+        max-height: 300px;
+        /* Define a altura máxima do conteúdo do modal para 300px */
+        overflow-y: auto;
+        /* Adiciona uma barra de rolagem vertical ao conteúdo do modal se o conteúdo exceder a altura máxima */
+    }
+
+
+    .loader {
+        border: 16px solid #f3f3f3;
+        /* Define uma borda sólida de 16px para o elemento com cor clara */
+        border-radius: 50%;
+        /* Isso faz com que o elemento tenha bordas arredondadas, tornando-o um círculo */
+        border-top: 16px solid #3498db;
+        /* Define a cor da borda superior do círculo como uma cor azulada */
+        width: 120px;
+        /* Define a largura do elemento */
+        height: 120px;
+        /* Define a altura do elemento */
+        -webkit-animation: spin 2s linear infinite;
+        /* Animação para navegadores que suportam prefixo -webkit- (Chrome, Safari, etc). Faz o elemento girar continuamente */
+        animation: spin 2s linear infinite;
+        /* Animação padrão para girar o elemento continuamente */
+        position: fixed;
+        /* Posiciona o elemento de forma fixa na tela */
+        z-index: 9999;
+        /* Define a ordem de empilhamento do elemento (sempre estará na frente dos outros elementos) */
+        overflow: show;
+        /* Define o que acontece se o conteúdo ultrapassa os limites do elemento. Neste caso, permite que ele seja mostrado */
+        margin: auto;
+        /* Centraliza o elemento */
+        top: 0;
+        /* Define a posição superior do elemento para 0 */
+        left: 0;
+        /* Define a posição esquerda do elemento para 0 */
+        bottom: 0;
+        /* Define a posição inferior do elemento para 0 */
+        right: 0;
+        /* Define a posição direita do elemento para 0 */
+    }
+
+    @-webkit-keyframes spin {
+        0% {
+            -webkit-transform: rotate(0deg);
+        }
+
+        /* Define o estado inicial da animação para 0 graus */
+        100% {
+            -webkit-transform: rotate(360deg);
+        }
+
+        /* Define o estado final da animação para 360 graus (uma volta completa) */
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        /* Define o estado inicial da animação para 0 graus */
+        100% {
+            transform: rotate(360deg);
+        }
+
+        /* Define o estado final da animação para 360 graus (uma volta completa) */
+    }
+
+    .disable-screen {
+        position: fixed;
+        /* Posiciona o elemento de forma fixa na tela */
+        width: 100%;
+        /* Define a largura do elemento como 100% da largura da tela */
+        height: 100%;
+        /* Define a altura do elemento como 100% da altura da tela */
+        top: 0;
+        /* Define a posição superior do elemento para 0 */
+        left: 0;
+        /* Define a posição esquerda do elemento para 0 */
+        background-color: rgba(0, 0, 0, 0.4);
+        /* Define a cor de fundo do elemento como preto com 40% de opacidade */
+        z-index: 9998;
+        /* Define a ordem de empilhamento do elemento (ficará atrás do elemento .loader) */
+        display: none;
+        /* Inicialmente, o elemento não será exibido */
+    }
+</style>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script>
     $(document).ready(function() {
@@ -443,6 +623,14 @@ if (empty($servicos)) {
                 },
                 success: function(response) {
                     $('#resultados-produtos-' + servicoId).html(response);
+
+                    $('.pesquisa-produto').focus();
+                    var elemento = document.querySelector('.pesquisa-produto');
+                    elemento.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
                 }
             });
         });
@@ -453,9 +641,12 @@ if (empty($servicos)) {
 
         // Lidar com os que já vem carregados
         $(document).on('click', '.adicionar-produto', function() {
+
+
             // Obtém o ID do serviço do atributo data-servico-id do botão
             var servicoId = $(this).data('servico-id');
-            
+            atualizarListagemDeProdutos(servicoId);
+
             console.log("Botão Adicionar Produto clicado para o serviço ID: ", servicoId);
 
             // Armazena o ID do serviço no modal
@@ -467,29 +658,6 @@ if (empty($servicos)) {
 
             // Define o foco no campo de pesquisa de produtos
             $('.pesquisa-produto').focus();
-        });
-
-        $(document).on('click', '.adicionar-produto2', function() {
-            // Obtém o ID do serviço do atributo data-servico-id do botão
-            var servicoId = $(this).data('servico-id');
-            
-            console.log("Botão Adicionar Produto clicado para o serviço ID: ", servicoId);
-
-            // Armazena o ID do serviço no modal
-            $('#modal-produtos').data('servico-id', servicoId);
-
-            // Exibe o modal de pesquisa de produtos
-            $('#modal-background').show();
-            $('#modal-produtos').show();
-
-            // Define o foco no campo de pesquisa de produtos
-            $('.pesquisa-produto').focus();
-        });
-
-        // Feche o modal se o plano de fundo escurecido for clicado
-        $('#modal-background').on('click', function() {
-            $('#modal-background').hide();
-            $('#modal-produtos').hide();
         });
 
 
@@ -501,7 +669,26 @@ if (empty($servicos)) {
 
             // Adicione o produto à tabela HTML
             $('.servico-container[data-servico-id="' + servicoId + '"] table').append('<tr><td>' + produtoId + '</td><td>' + quantidade + '</td><td>Origem</td><td><button type="button" class="remover-produto">Remover</button></td></tr>');
+            atualizarListagemDeProdutos(servicoId);
         });
+
+
+        // Fechar o modal e esconder a tela de fundo ao clicar fora do modal
+        $('#modal-background').on('click', function() {
+            fecharModal();
+        });
+
+        // Fechar o modal e esconder a tela de fundo ao pressionar a tecla "ESC"
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') {
+                fecharModal();
+            }
+        });
+
+        function fecharModal() {
+            $('#modal-produtos').hide();
+            $('#modal-background').hide();
+        }
 
 
 
@@ -509,84 +696,31 @@ if (empty($servicos)) {
 
         $(document).on('click', '.remover-produto', function() {
             removerProduto(this);
+            var servicoId = $(this).data('servico-id');
+            atualizarListagemDeProdutos(servicoId);
         });
 
 
 
         //att
-        $(document).on('click', '.atualizar-servico', function() {
-            var servicoId = $(this).data('servico-id');
-            var idOs = $(this).closest('.servico-container').data('id-os'); // Aqui o idOs
-            var idSrv = $(this).closest('.servico-container').data('id-srv'); // E aqui o idSrv
-
-            var produtos = [];
-
-            $('.servico-container[data-servico-id="' + servicoId + '"] table tbody tr').each(function() {
-                var id = $(this).data('id');
-                var produtoId = $(this).data('produto-id');
-                var descricao = $(this).find('td').eq(0).text();
-                var quantidade = $(this).find('td').eq(1).text();
-                var origem = $(this).find('td').eq(2).text();
-                var terceiro_posse = (origem === 'SP') ? 'SIM' : 'NÃO';
-                produtos.push({
-                    id: id, // Adicione isso aqui
-                    produtoId: produtoId,
-                    descricao: descricao,
-                    quantidade: quantidade,
-                    terceiro_posse: terceiro_posse
-                });
-            });
-
-
-
-            console.log('Dados enviados para o servidor:', {
-                servicoId,
-                idOs,
-                idSrv,
-                produtos
-            }); // Log Dados enviados para o servidor
-
+        function atualizarListagemDeProdutos(servicoId) {
+            var query = $('.pesquisa-produto[data-servico-id="' + servicoId + '"]').val();
             $.ajax({
-                url: 'fab_os_detalhes_servico_updt_ajax.php',
-                type: 'POST',
+                url: 'fab_os_pesquisar_produtos.php',
+                type: 'GET',
                 data: {
-                    servicoId: servicoId,
-                    idOs: idOs,
-                    idSrv: idSrv,
-                    produtos: produtos
+                    query: query,
+                    servicoId: servicoId
                 },
-                dataType: "json",
-                //dataType: "text",
-                // Dentro da função de sucesso do AJAX.
                 success: function(response) {
-                    console.log('Resposta do servidor:', response); // Adicione esta linha
-
-                    // este trecho para exibir as consultas SQL no log do console
-                    if (response.queries && response.queries.length > 0) {
-                        console.log('Consultas SQL enviadas:');
-                        response.queries.forEach(function(query) {
-                            console.log(query);
-                        });
-                    }
-
-
-                    if (response.success) {
-                        alert('Dados salvos com sucesso!');
-                    } else {
-                        alert('Erro ao salvar os dados: ' + response.message);
-                    }
-                },
-
-                error: function(jqXHR, textStatus, errorThrown) {
-                    alert('Erro ao salvar os dados.');
-                    console.error('Error details:', jqXHR, textStatus, errorThrown); // Log the error details
-                    alert('Erro ao salvar os dados. ' + textStatus);
+                    $('#resultados-produtos-' + servicoId).html(response);
+                    console.log('sucess ajax');
+                    console.log(response);
                 }
             });
-        });
-
-
-
+            console.log('depois ajax');
+            console.log(servicoId);
+        }
 
 
 
@@ -640,7 +774,7 @@ if (empty($servicos)) {
                                 novoServicoHtml += '</tbody>';
                                 novoServicoHtml += '</table>';
 
-                                novoServicoHtml += '<button type="button" class="adicionar-produto2" data-servico-id="' + response.servico.id +
+                                novoServicoHtml += '<button type="button" class="adicionar-produto" data-servico-id="' + response.servico.id +
                                     '">Adicionar Produto</button>';
 
                                 novoServicoHtml += '<button type="button" class="atualizar-servico" data-servico-id="' + response.servico.id +
@@ -653,6 +787,7 @@ if (empty($servicos)) {
 
                                 $('.adicionar-servico-container').before(novoServicoHtml);
                                 $('.novo-servico-select').hide();
+
 
                             } else {
                                 alert(response.message);
@@ -679,7 +814,7 @@ if (empty($servicos)) {
 
     }); //fim do ready
 
-    function adicionarProduto(produtoId, produtoNome) {
+    async function adicionarProduto(produtoId, produtoNome, idProdutoMov) {
         var quantidade = null;
 
         // Continue perguntando até receber uma quantidade numérica ou o usuário pressionar "Cancelar"
@@ -701,6 +836,14 @@ if (empty($servicos)) {
             }
         }
 
+        // Verificar se a quantidade solicitada é maior do que o saldo disponível
+        var saldoDisponivel = parseFloat(await verificarSaldoDisponivel(idProdutoMov, quantidade));
+
+        if (saldoDisponivel < quantidade) {
+            alert("Quantidade requisitada excede o saldo disponível. Saldo disponível: " + saldoDisponivel);
+            return;
+        }
+
         var origem = null;
 
         // Continue perguntando até receber 'MG' ou 'SP' ou o usuário pressionar "Cancelar"
@@ -720,9 +863,9 @@ if (empty($servicos)) {
             }
         }
 
-        var rowHtml = '<tr data-produto-id="' + produtoId + '">';
+        var rowHtml = '<tr data-produto-id="' + produtoId + '" data-id-produto-mov="' + idProdutoMov + '">';
         rowHtml += '<td>' + produtoNome + '</td>';
-        rowHtml += '<td>' + quantidade + '</td>';
+        rowHtml += '<td class="quantidade">' + quantidade + '</td>';
         rowHtml += '<td>' + origem + '</td>';
         rowHtml += '<td><button type="button" onclick="removerProduto(this)">Remover</button></td>';
         rowHtml += '</tr>';
@@ -734,78 +877,137 @@ if (empty($servicos)) {
             scrollTop: $('.servico-container[data-servico-id="' + servicoId + '"]').offset().top
         }, 0); // 1000ms para animação, você pode ajustar esse valor
 
-
         $('#modal-produtos').hide(); // Esconde o modal após adicionar o produto
         $('#modal-background').hide();
 
+        $('.produtos-adicionados-' + servicoId).show(); // Mostra a tabela correspondente
+
+        var servicoId = $('#modal-produtos').data('servico-id');
+        var idOs = $('.servico-container[data-servico-id="' + servicoId + '"]').data('id-os');
+        var idSrv = $('.servico-container[data-servico-id="' + servicoId + '"]').data('id-srv');
+        var terceiro_posse = (origem === 'SP') ? 'SIM' : 'NÃO';
+        var produto = [{
+            produtoId: produtoId,
+            idProdutoMov: idProdutoMov,
+            descricao: produtoNome,
+            quantidade: quantidade,
+            terceiro_posse: terceiro_posse
+        }];
+
+        $('.loader').show();
+        $('.disable-screen').show();
+        $.ajax({
+            url: 'fab_os_detalhes_servico_updt_ajax.php',
+            type: 'POST',
+            data: {
+                servicoId: servicoId,
+                idOs: idOs,
+                idSrv: idSrv,
+                produtos: produto
+            },
+            dataType: "json",
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message);
+                } else {
+                    alert('Erro ao salvar os dados: ' + response.message);
+                }
+                $('.loader').hide();
+                $('.disable-screen').hide();
+                atualizarListagemDeProdutos(servicoId);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert('Erro ao salvar os dados.');
+                console.error('Error details:', jqXHR, textStatus, errorThrown);
+                alert('Erro ao salvar os dados. ' + textStatus);
+                $('.loader').hide();
+                $('.disable-screen').hide();
+                atualizarListagemDeProdutos(servicoId);
+            }
+        });
     }
 
+    // Função para verificar o saldo disponível
+    function verificarSaldoDisponivel(idProdutoMov, quantidadeRequisitada) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: 'fab_os_verificar_saldo_disponivel.php',
+                type: 'POST',
+                data: {
+                    idProdutoMov: idProdutoMov
+                },
+                success: function(response) {
+                    if (response.success) {
+                        resolve(response.saldoDisponivel);
+                    } else {
+                        reject('Erro ao verificar o saldo disponível: ' + response.message);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    reject('Erro ao verificar o saldo disponível. ' + textStatus);
+                }
+            });
+        });
+    }
 
 
 
     function removerProduto(button) {
-        $(button).closest('tr').remove();
+        var row = $(button).closest('tr');
+        var id = $(row).data('id');
+        var servicoId = $(row).closest('.servico-container').data('servico-id');
+        var idOs = $(row).closest('.servico-container').data('id-os');
+        var idSrv = $(row).closest('.servico-container').data('id-srv');
+        var produtoId = $(row).data('produto-id');
+        var idProdutoMov = $(row).data('id-produto-mov');
+        var quantidade = $(row).find('.quantidade').text();
+        var produto = [{
+            produtoId: produtoId,
+            idProdutoMov: idProdutoMov,
+            quantidade: quantidade // adicione a quantidade ao objeto do produto
+        }];
+
+        $('.loader').show();
+        $('.disable-screen').show();
+        $.ajax({
+            url: 'fab_os_detalhes_servico_updt_ajax.php',
+            type: 'POST',
+            data: {
+                id: id,
+                servicoId: servicoId,
+                idOs: idOs,
+                idSrv: idSrv,
+                produtoId: produtoId,
+                idProdutoMov: idProdutoMov,
+                produtos: produto,
+                acao: 'remover'
+            },
+            dataType: "json",
+            success: function(response) {
+                console.log(response)
+                if (response.success) {
+                    alert(response.message);
+                    $(row).remove();
+                } else {
+                    alert('Erro ao remover os dados: ' + response.message);
+                }
+                $('.loader').hide();
+                $('.disable-screen').hide();
+                atualizarListagemDeProdutos(servicoId);
+
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert('Erro ao remover os dados.');
+                console.error('Error details:', jqXHR, textStatus, errorThrown);
+                alert('Erro ao remover os dados. ' + textStatus);
+                $('.loader').hide();
+                $('.disable-screen').hide();
+                atualizarListagemDeProdutos(servicoId);
+
+            }
+
+        });
+
     }
 </script>
-
-<style>
-    .produtos-adicionados {
-        display: table;
-        border-collapse: collapse;
-        width: 100%;
-    }
-
-    .produtos-adicionados th,
-    .produtos-adicionados td {
-        padding: 10px;
-        text-align: left;
-        border: 1px solid #ddd;
-    }
-
-    .produtos-adicionados th {
-        background-color: #f2f2f2;
-    }
-
-    .produtos-adicionados td {
-        min-width: 15px;
-        max-width: 150px;
-    }
-
-    .modal-background {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-    }
-
-    #modal-produtos {
-        display: none;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: white;
-        padding: 20px;
-        border: 1px solid #ccc;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        max-width: 80%;
-        z-index: 1010;
-    }
-
-    #modal-produtos .modal-content {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-</style>
-
-
-
-
-
-
-
 <?php include("base.php"); ?>

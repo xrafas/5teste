@@ -1,7 +1,9 @@
 <?php
+/*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+*/
 
 // Inclui o arquivo de sessão para ter acesso a variáveis de sessão
 include_once('session.php');
@@ -33,6 +35,7 @@ switch ($action) {
  INNER JOIN clientes_iscas AS ci ON cim.setor = ci.Descricao ";
 
         $where_clause = [];
+        // Adiciona condições à cláusula WHERE, se necessário
 
         if ($id_cliente !== null) {
             $where_clause[] = "cim.Id_cliente = ?";
@@ -49,6 +52,7 @@ switch ($action) {
             $where_clause[] = "ci.Status = 'ATIVO'";
         }
 
+        // Adiciona cláusula WHERE à query SQL
         if (!empty($where_clause)) {
             $sql .= " WHERE " . implode(" AND ", $where_clause);
         }
@@ -61,32 +65,30 @@ switch ($action) {
 
         $bind_params = [];
 
+        // Liga os parâmetros à consulta preparada
         if ($id_cliente !== null) {
             $bind_params[] = $id_cliente;
         }
-        
+
         if ($setor !== null) {
             $bind_params[] = $setor;
         }
-        
+
         if ($codigo  !== null) {
             $bind_params[] = $codigo;
         }
-        
+
+        // Liga os parâmetros e executa a consulta
         if (!empty($bind_params)) {
             $stmt->bind_param(str_repeat("s", count($bind_params)), ...$bind_params);
         }
-        
 
+        // Executa a consulta
         $stmt->execute();
 
 
         // Obtém os resultados da query
         $result = $stmt->get_result();
-
-
-        //$dados = [];        // essa var $dados com um array vazio está precisando de ajustes.
-
 
 
         // Itera sobre os resultados e exibe na tabela
@@ -212,36 +214,97 @@ switch ($action) {
         echo "Porta iscas deletado com sucesso!";
         break;
 
-        case 'get_setores':
-            $id = isset($_GET['id']) ? $_GET['id'] : null;
-            $id_cliente = isset($_GET['id_cliente']) ? $_GET['id_cliente'] : null;
-            $selectedSetor = null;
-        
-            // Obtendo o setor selecionado de clientes_iscas_mov
-            if ($id !== null) {
-                $stmt = $conn_ext->prepare("SELECT setor FROM clientes_iscas_mov WHERE Id = ?");
-                $stmt->bind_param("i", $id);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                if ($result->num_rows > 0) {
-                    $selectedSetor = $result->fetch_assoc()['setor'];
-                }
-            }
-        
-            // Obtendo os setores da tabela clientes_iscas
-            $sql = "SELECT DISTINCT Descricao FROM clientes_iscas WHERE Id_cliente = ? AND Status = 'ATIVO' ORDER BY Descricao";
-            $stmt = $conn_ext->prepare($sql);
-            $stmt->bind_param("s", $id_cliente);
+    case 'get_setores':
+        $id = isset($_GET['id']) ? $_GET['id'] : null;
+        $id_cliente = isset($_GET['id_cliente']) ? $_GET['id_cliente'] : null;
+        $selectedSetor = null;
+
+        // Obtendo o setor selecionado de clientes_iscas_mov
+        if ($id !== null) {
+            $stmt = $conn_ext->prepare("SELECT setor FROM clientes_iscas_mov WHERE Id = ?");
+            $stmt->bind_param("i", $id);
             $stmt->execute();
             $result = $stmt->get_result();
-        
-            while ($row = $result->fetch_assoc()) {
-                // Marcar a opção como selecionada se for o valor salvo
-                $selected = ($row['Descricao'] == $selectedSetor) ? 'selected' : '';
-                echo '<option value="' . $row['Descricao'] . '" ' . $selected . '>' . $row['Descricao'] . '</option>';
+            if ($result->num_rows > 0) {
+                $selectedSetor = $result->fetch_assoc()['setor'];
             }
-            break;
-        
+        }
+
+        // Obtendo os setores da tabela clientes_iscas
+        $sql = "SELECT DISTINCT Descricao FROM clientes_iscas WHERE Id_cliente = ? AND Status = 'ATIVO' ORDER BY Descricao";
+        $stmt = $conn_ext->prepare($sql);
+        $stmt->bind_param("s", $id_cliente);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+            // Marcar a opção como selecionada se for o valor salvo
+            $selected = ($row['Descricao'] == $selectedSetor) ? 'selected' : '';
+            echo '<option value="' . $row['Descricao'] . '" ' . $selected . '>' . $row['Descricao'] . '</option>';
+        }
+        break;
+
+
+
+
+    case 'get_single_mov':
+        // Obtém o id através da URL
+        $id = $_GET['id'];
+
+        // Define a query SQL para obter uma única linha com base no id
+        $sql = "SELECT * FROM clientes_iscas_mov WHERE Id = ?";
+
+        // Prepara a query SQL
+        $stmt = $conn_ext->prepare($sql);
+
+        // Vincula o parâmetro id
+        $stmt->bind_param("i", $id);
+
+        // Executa a query
+        $stmt->execute();
+
+        // Obtém o resultado
+        $result = $stmt->get_result();
+
+        // Verifica se há um resultado
+        if ($result->num_rows > 0) {
+            // Obtém os dados em forma de array associativo
+            $row = $result->fetch_assoc();
+
+            // Retorna os dados no formato JSON
+            echo json_encode($row);
+        }
+
+        // Encerra a declaração e a conexão
+        $stmt->close();
+        $conn_ext->close();
+        break;
+
+
+
+
+
+    case 'save_monitor':
+        // Obtém os dados do POST
+        $id = $_POST['monitor-id'];
+        $status = json_decode($_POST['monitor-status']); // Decodificar JSON string
+
+        // Define a query SQL para atualizar o status do registro
+        $sql = "UPDATE clientes_iscas_mov SET status = ?, status2 = ? WHERE Id = ?";
+
+        // Prepara a query SQL
+        $stmt = $conn_ext->prepare($sql);
+
+        // Faz o bind dos valores
+        $stmt->bind_param("ssi", $status[0], $status[1], $id);
+
+        // Executa a query SQL
+        $stmt->execute();
+
+        // Retorna sucesso
+        echo "Situação da isca atualizada!";
+        break;
+
 
 
 
